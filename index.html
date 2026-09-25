@@ -271,6 +271,18 @@
         }
         .send-btn:hover { background-color: #445546; }
 
+        .form-success-msg {
+            display: none;
+            background: #e8f2ea;
+            color: #435447;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            font-size: 1rem;
+            border: 1px solid #c8dbc9;
+        }
+
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -400,7 +412,7 @@
                 <div class="suggestion-item" onclick="selectWish(this)">May you wake up smiling every morning, grateful to have each other</div>
                 <div class="suggestion-item" onclick="selectWish(this)">Wishing the newlyweds endless luck, good health, and success</div>
                 <div class="suggestion-item" onclick="selectWish(this)">Wishing your little home soon fills with children's laughter and complete happiness</div>
-                <div class="suggestion-item" onclick="selectWish(this)">Wishing you happiness together until your hair turns grey, side by side for life</div>
+                <div class="suggestion-item" onclick="selectWish(this)">Wishing you happiness until your hair turns grey, side by side for life</div>
                 <div class="suggestion-item" onclick="selectWish(this)">Wishing you both a lifetime overflowing with love and happiness</div>
             </div>
 
@@ -511,7 +523,6 @@
             <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Abdelrahman+%26+Basma+Engagement&dates=20261004T183000Z/20261004T220000Z&details=Engagement+Party+at+Labella+cafe+-+Mit+Ghamr&location=Labella+cafe,+Mit+Ghamr" target="_blank" class="add-to-cal-link">Add to Calendar</a>
         </div>
 
-        <!-- القسم الخامس (تم تعديل الخريطة هنا لإزالة بانر المدينة العام) -->
         <div class="content-section">
             <div class="section-title">Engagement Party Venue</div>
             <div class="venue-title">Labella cafe</div>
@@ -525,14 +536,16 @@
             <div class="section-title">Guestbook</div>
             
             <div class="guestbook-card">
-                <form id="guestbookForm" action="https://formspree.io/f/https://formspree.io/f/xvkgbdzy" method="POST">
+                <form id="guestbookForm" action="https://formspree.io/f/xvkgbdzy" method="POST">
                     <div class="form-group"><input type="text" name="guestName" id="guestName" placeholder="Enter your name*" required></div>
                     <div class="form-group"><textarea name="guestWishes" id="guestWishes" rows="4" placeholder="Enter your wishes*" required></textarea></div>
+                    
                     <div class="form-footer">
                         <button type="button" class="icon-btn-left" id="magicWandBtn" title="Suggested wishes">🪄</button>
-                        <button type="submit" class="send-btn">Send Wishes</button>
-            </div>
-</form>
+                        <button type="submit" class="send-btn" id="submitBtn">Send Wishes</button>
+                    </div>
+                </form>
+                <div id="formSuccessMsg" class="form-success-msg">Thank you! Your wishes have been sent successfully ✨</div>
             </div>
         </div>
     </div>
@@ -662,6 +675,45 @@
             document.getElementById('countdown').innerHTML = `${d}d ${h}h ${m}m ${s}s`;
         }, 1000);
 
+        // معالجة إرسال النموذج عبر AJAX لمنع الانتقال لصفحة Formspree
+        const guestbookForm = document.getElementById('guestbookForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const successMsg = document.getElementById('formSuccessMsg');
+
+        guestbookForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Sending...";
+
+            const formData = new FormData(guestbookForm);
+
+            fetch(guestbookForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    successMsg.style.display = 'block';
+                    guestbookForm.reset();
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Send Wishes";
+                    setTimeout(() => {
+                        successMsg.style.display = 'none';
+                    }, 5000);
+                } else {
+                    alert('Oops! There was a problem submitting your form.');
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Send Wishes";
+                }
+            }).catch(error => {
+                alert('Oops! There was a problem submitting your form.');
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Send Wishes";
+            });
+        });
+
         const modal = document.getElementById('suggestionsModal');
         const magicBtn = document.getElementById('magicWandBtn');
         const closeModalX = document.getElementById('closeModalX');
@@ -699,29 +751,6 @@
                 div.innerText = wish;
                 listContainer.appendChild(div);
             });
-        });
-
-        document.getElementById('guestbookForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const form = this;
-            const formData = new FormData(form);
-            
-            try {
-                const response = await fetch(form.action, {
-                    method: form.method,
-                    body: formData,
-                    headers: { 'Accept': 'application/json' }
-                });
-
-                if (response.ok) {
-                    alert('Thank you! Your wishes have been sent successfully ✨');
-                    form.reset();
-                } else {
-                    alert('Oops! There was a problem sending your wishes.');
-                }
-            } catch (error) {
-                alert('Oops! There was a problem sending your wishes.');
-            }
         });
     </script>
 </body>
